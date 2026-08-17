@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipkart Store Sales & Inventory Dashboard</title>
+    <!-- Custom CSS Styles -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand-section">
+                <div class="brand-logo">F</div>
+                <div class="brand-name">Seller<span>Hub</span></div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-tab="orders">
+                    <i data-lucide="shopping-bag"></i>
+                    <span>Orders</span>
+                </a>
+                <a class="nav-item" data-tab="inventory">
+                    <i data-lucide="box"></i>
+                    <span>Inventory</span>
+                </a>
+                <a class="nav-item" data-tab="customers">
+                    <i data-lucide="users"></i>
+                    <span>Customers</span>
+                </a>
+                <a class="nav-item" data-tab="analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Analytics</span>
+                </a>
+                <a class="nav-item" data-tab="settings">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="seller-profile">
+                    <div class="seller-avatar">IN</div>
+                    <div class="seller-info">
+                        <h4>IndoRetail Corp</h4>
+                        <p><span></span>Gold Seller Tier</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-panel">
+            <!-- 1. DASHBOARD VIEW -->
+            <div id="view-dashboard" class="tab-view active">
+                <!-- Header section with Title and Controls -->
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Store Sales Overview</h1>
+                        <p id="dashboard-date-indicator">Active Performance Monitoring</p>
+                    </div>
+                    
+                    <div class="controls-bar">
+                        <!-- Date Selector presets -->
+                        <select id="dateRangeSelect" class="control-select">
+                            <option value="last7days">Last 7 Days</option>
+                            <option value="last30days" selected>Last 30 Days</option>
+                            <option value="ytd">Year to Date (YTD)</option>
+                            <option value="bbd2025">Big Billion Days (Oct 3-10)</option>
+                            <option value="diwali2025">Diwali Sale (Nov 5-12)</option>
+                        </select>
+
+                        <!-- Category Filter -->
+                        <select id="categorySelect" class="control-select">
+                            <option value="all">All Categories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Home & Kitchen">Home & Kitchen</option>
+                            <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                            <option value="Grocery">Grocery</option>
+                        </select>
+
+                        <!-- Channel Filter -->
+                        <select id="channelSelect" class="control-select">
+                            <option value="all">All Customer Tiers</option>
+                            <option value="Flipkart Plus">Flipkart Plus Members</option>
+                            <option value="Regular Customer">Regular Customers</option>
+                            <option value="Flipkart Minutes">Flipkart Minutes (Q-Comm)</option>
+                        </select>
+
+                        <!-- Action Button -->
+                        <button id="exportBtn" class="control-btn primary">
+                            <i data-lucide="download"></i>
+                            <span>Export Report</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Active Promotional Event Alert Banner (Dynamic) -->
+                <div id="campaignBanner" class="campaign-banner" style="display: none;">
+                    <div class="campaign-info">
+                        <span id="campaignBadge" class="campaign-badge">Big Billion Days</span>
+                        <div class="campaign-text">
+                            <h4 id="campaignTitle">Big Billion Days Campaign Active</h4>
+                            <p id="campaignSubtitle">Massive organic traffic spike observed across India.</p>
+                        </div>
+                    </div>
+                    <div class="kpi-trend positive" style="font-size: 14px;">
+                        <i data-lucide="trending-up"></i>
+                        <span id="campaignMultiplier">+850% Peak Vol</span>
+                    </div>
+                </div>
+
+                <!-- Core metrics cards (KPIs) -->
+                <section class="kpi-grid">
+                    <!-- Sales KPI -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Gross Merchandise Value (GMV)</span>
+                            <div class="kpi-icon-wrapper">
+                                <i data-lucide="indian-rupee"></i>
+                            </div>
+                        </div>
+                        <div id="salesKpiVal" class="kpi-value">₹0.00</div>
+                        <div id="salesKpiTrend" class="kpi-trend">
+                            <i></i> <span>vs last period</span>
+                        </div>
+                    </div>
+
+                    <!-- Orders KPI -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total Orders</span>
+                            <div class="kpi-icon-wrapper">
+                                <i data-lucide="shopping-cart"></i>
+                            </div>
+                        </div>
+                        <div id="ordersKpiVal" class="kpi-value">0</div>
+                        <div id="ordersKpiTrend" class="kpi-trend">
+                            <i></i> <span>vs last period</span>
+                        </div>
+                    </div>
+
+                    <!-- AOV KPI -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Average Order Value (AOV)</span>
+                            <div class="kpi-icon-wrapper">
+                                <i data-lucide="receipt"></i>
+                            </div>
+                        </div>
+                        <div id="aovKpiVal" class="kpi-value">₹0.00</div>
+                        <div id="aovKpiTrend" class="kpi-trend">
+                            <i></i> <span>vs last period</span>
+                        </div>
+                    </div>
+
+                    <!-- Conversion KPI -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Traffic Conversion</span>
+                            <div class="kpi-icon-wrapper">
+                                <i data-lucide="eye"></i>
+                            </div>
+                        </div>
+                        <div id="convKpiVal" class="kpi-value">0.00%</div>
+                        <div id="convKpiTrend" class="kpi-trend">
+                            <i></i> <span>vs last period</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Primary Data Visualization Layout -->
+                <section class="visuals-grid">
+                    <!-- Trend Chart Card -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">
+                                <h3>Sales & Order Volatility Trend</h3>
+                                <p>Daily breakdown of revenues vs order count</p>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="trendChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Category Donut Chart -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">
+                                <h3>Product Categories</h3>
+                                <p>Revenues share by category</p>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="categoryChartCanvas"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tables and Feed Row -->
+                <div class="dashboard-grid-split">
+                    <!-- Left: Catalog Performance Table -->
+                    <div class="table-card">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <h3>Product Catalog Insights</h3>
+                                <p>Check sales levels, average ratings, and inventory warning levels</p>
+                            </div>
+                            <div class="table-search">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="productSearchInput" placeholder="Search by name or SKU...">
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table id="productTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="id">Product SKU <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="name">Product Details <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="category">Category <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="stock">Stock status <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="unitsSold">Units Sold <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="revenue">Revenue <i data-lucide="chevrons-up-down"></i></th>
+                                        <th class="sortable" data-sort="rating">Customer Rating <i data-lucide="chevrons-up-down"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productTableBody">
+                                    <!-- Dynamic items loaded in app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Reviews Feed & Quality Monitoring -->
+                    <div class="feed-card">
+                        <div class="feed-header">
+                            <h3>Customer Insights Feed</h3>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Recent ratings & feedback comments</p>
+                        </div>
+                        <div class="reviews-list" id="reviewsListContainer">
+                            <!-- Dynamic reviews in app.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ORDERS VIEW -->
+            <div id="view-orders" class="tab-view">
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Orders Registry</h1>
+                        <p>Track customer purchases, fulfillment stages, and returns</p>
+                    </div>
+                    <div class="controls-bar">
+                        <div class="table-search">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="orderSearchInput" placeholder="Search by Order ID or Product...">
+                        </div>
+                    </div>
+                </header>
+
+                <div class="filter-btn-group" id="orderStatusFilters">
+                    <button class="status-filter-btn active" data-status="all">All Orders</button>
+                    <button class="status-filter-btn" data-status="Delivered">Delivered</button>
+                    <button class="status-filter-btn" data-status="Shipped">Shipped</button>
+                    <button class="status-filter-btn" data-status="Processing">Processing</button>
+                    <button class="status-filter-btn" data-status="Returned">Returned</button>
+                    <button class="status-filter-btn" data-status="Cancelled">Cancelled</button>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-wrapper">
+                        <table id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Product Details</th>
+                                    <th>Qty</th>
+                                    <th>Revenue</th>
+                                    <th>Payment</th>
+                                    <th>Fulfillment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Loaded dynamically via app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div id="ordersTableInfo" style="font-size: 13px; color: var(--text-secondary);">Showing 0-0 of 0 entries</div>
+                        <div class="pagination-controls">
+                            <button id="prevOrdersPageBtn" class="page-btn"><i data-lucide="chevron-left"></i></button>
+                            <span id="ordersPageIndicator" style="font-size: 13px; font-weight: 500;">Page 1 of 1</span>
+                            <button id="nextOrdersPageBtn" class="page-btn"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. INVENTORY VIEW -->
+            <div id="view-inventory" class="tab-view">
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Inventory Management</h1>
+                        <p>Stock levels, minimum stock alerts, and quick restock tools</p>
+                    </div>
+                    <div class="controls-bar">
+                        <button class="control-btn primary" id="openRestockModalBtn">
+                            <i data-lucide="plus-circle"></i>
+                            <span>Restock Item</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Product Catalog & Stock Status</h3>
+                            <p>Real-time tracking of units available in warehouse</p>
+                        </div>
+                        <div class="controls-bar" style="gap: 12px;">
+                            <select id="inventoryCategorySelect" class="control-select">
+                                <option value="all">All Categories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Fashion">Fashion</option>
+                                <option value="Home & Kitchen">Home & Kitchen</option>
+                                <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                                <option value="Grocery">Grocery</option>
+                            </select>
+                            <div class="table-search">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="inventorySearchInput" placeholder="Search by SKU or name...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="inventoryTable">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Product Details</th>
+                                    <th>Category</th>
+                                    <th>Stock Level</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Stock Value</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <!-- Loaded dynamically via app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. CUSTOMERS VIEW -->
+            <div id="view-customers" class="tab-view">
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Customer Accounts</h1>
+                        <p>Customer purchasing frequency, lifetime spend, and membership status</p>
+                    </div>
+                    <div class="controls-bar">
+                        <select id="customerTierSelect" class="control-select">
+                            <option value="all">All Customer Tiers</option>
+                            <option value="Flipkart Plus">Flipkart Plus</option>
+                            <option value="Regular Customer">Regular Customer</option>
+                        </select>
+                        <div class="table-search">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="customerSearchInput" placeholder="Search by customer name...">
+                        </div>
+                    </div>
+                </header>
+
+                <div class="table-card">
+                    <div class="table-wrapper">
+                        <table id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th>Customer ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Email Address</th>
+                                    <th>Tier Status</th>
+                                    <th>Orders Placed</th>
+                                    <th>Total Spend</th>
+                                    <th>Last Active Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody">
+                                <!-- Loaded dynamically via app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. ANALYTICS VIEW -->
+            <div id="view-analytics" class="tab-view">
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Business Analytics & Insights</h1>
+                        <p>Deep-dive reports on regional performance and consumer fulfillment gateways</p>
+                    </div>
+                </header>
+
+                <!-- Analytics Visuals Grid (State distribution & Payment Methods) -->
+                <section class="visuals-grid">
+                    <!-- State distribution (Horizontal Bar) -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">
+                                <h3>State Performance Breakdown</h3>
+                                <p>Top sales states by GMV contributions</p>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="stateChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods Distribution (Polar Area) -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">
+                                <h3>Fulfillment & Payments</h3>
+                                <p>Preferred consumer gateways</p>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="paymentChartCanvas"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Promotional Performance Summary Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Campaign & Event Analysis</h3>
+                            <p>Comparison of seller metrics during major shopping events</p>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Event / Campaign</th>
+                                    <th>Duration</th>
+                                    <th>Peak Traffic Multiplier</th>
+                                    <th>Average Order Value (AOV)</th>
+                                    <th>Fulfillment Channel Tiers</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Big Billion Days 2025</strong></td>
+                                    <td>Oct 3 - Oct 10 (8 days)</td>
+                                    <td><span style="color:var(--color-success); font-weight:600;">8.5x (Peak)</span></td>
+                                    <td>₹2,500+ Avg</td>
+                                    <td><span class="badge plus">Flipkart Plus (65%)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Diwali Festive Dhamaka</strong></td>
+                                    <td>Nov 5 - Nov 12 (8 days)</td>
+                                    <td><span style="color:var(--color-success); font-weight:600;">5.0x (Festive)</span></td>
+                                    <td>₹1,800+ Avg</td>
+                                    <td><span class="badge minutes">Flipkart Minutes (20%)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Regular Days Average</strong></td>
+                                    <td>Daily baseline</td>
+                                    <td>1.0x (Normal)</td>
+                                    <td>₹1,440 Avg</td>
+                                    <td><span class="badge regular">Regular (75%)</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. SETTINGS VIEW -->
+            <div id="view-settings" class="tab-view">
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h1>Seller Hub Settings</h1>
+                        <p>Configure brand parameters, alerts, and system integration preferences</p>
+                    </div>
+                </header>
+
+                <div class="settings-grid">
+                    <!-- Brand & Account Settings Card -->
+                    <div class="settings-card">
+                        <h3><i data-lucide="user"></i> Seller Profile</h3>
+                        <form id="settingsProfileForm">
+                            <div class="form-group">
+                                <label for="settingsSellerName">Seller Display Name</label>
+                                <input type="text" id="settingsSellerName" value="IndoRetail Corp">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsBrandName">Brand Name Label</label>
+                                <input type="text" id="settingsBrandName" value="SellerHub Gold">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsEmail">Account Contact Email</label>
+                                <input type="email" id="settingsEmail" value="contact@indoretail.in">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsWarehouse">Fulfillment Warehouse</label>
+                                <input type="text" id="settingsWarehouse" value="Bhiwandi, Maharashtra">
+                            </div>
+                            <button type="submit" class="form-btn submit" style="width:100%; margin-top:8px;">Save Settings</button>
+                        </form>
+                    </div>
+
+                    <!-- Alerts & Configuration Card -->
+                    <div class="settings-card">
+                        <h3><i data-lucide="bell"></i> Alert System Settings</h3>
+                        <div class="switch-container">
+                            <div class="switch-details">
+                                <span>Low Stock Notifications</span>
+                                <p>Alert when a product stock level drops below minStock threshold</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="alertLowStock" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-container">
+                            <div class="switch-details">
+                                <span>Daily Performance Digest</span>
+                                <p>Receive a summary of sales, returns, and cancellation rates</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="alertDailyDigest" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-container">
+                            <div class="switch-details">
+                                <span>Customer Feedback Monitor</span>
+                                <p>Get notified when a customer posts a 1 or 2-star rating review</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="alertReviews">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Gold Tier Progress Card -->
+                    <div class="settings-card gold-tier">
+                        <h3><i data-lucide="award"></i> Tier Performance Level</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span id="settingsGoldTierLabel" style="font-size:14px; font-weight:600; color:var(--fk-yellow);">Gold Seller Tier</span>
+                            <span style="font-size:12px; color:var(--text-secondary);">85% Progress to Platinum</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--text-secondary);">Your seller performance score is in the top 3% of electronics retail partners this month.</p>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: 85%;"></div>
+                        </div>
+
+                        <div style="font-size:11px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px; margin-top:12px;">
+                            <div>• Dispatch SLA Adherence: 99.8% (Target: >98%)</div>
+                            <div>• Return Rate: 1.4% (Target: <3.0%)</div>
+                            <div>• Customer Rating average: 4.35 (Target: >4.2)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Restock Modal -->
+    <div id="restockModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-title">
+                <span>Restock Inventory SKU</span>
+                <button class="modal-close" id="closeRestockModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="restockForm">
+                    <div class="form-group">
+                        <label for="restockProductSelect">Select Product SKU</label>
+                        <select id="restockProductSelect" required>
+                            <!-- Options added dynamically in app.js -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="restockQuantityInput">Restock Quantity (Units)</label>
+                        <input type="number" id="restockQuantityInput" min="1" max="1000" value="50" required>
+                    </div>
+                    <div class="modal-footer" style="margin-top:20px;">
+                        <button type="button" class="form-btn cancel" id="cancelRestockBtn">Cancel</button>
+                        <button type="submit" class="form-btn submit">Update Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification System -->
+    <div id="toastNotification" class="toast-notification">
+        <i data-lucide="info" id="toastIcon"></i>
+        <span id="toastMessage">Action completed successfully!</span>
+    </div>
+
+    <!-- Export Indicator Toast notification -->
+    <div id="exportIndicator" class="export-indicator">
+        <i data-lucide="check-circle-2"></i>
+        <span>CSV Exported Successfully!</span>
+    </div>
+
+    <!-- Core App logic scripts -->
+    <script src="data.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
